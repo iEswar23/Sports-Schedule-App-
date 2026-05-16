@@ -1,0 +1,13 @@
+<resources>
+    <string name="app_name">Assessment</string>
+    <string name="schedule_screen_title">SCHEDULE</string>
+    <string name="nav_menu_description">Menu</string>
+    <string name="no_schedule_available">No schedule available</string>
+    <string name="game_vs"> vs </string>
+    <string name="game_at"> \@ </string>
+    <string name="game_final">Final</string>
+    <string name="game_bye">BYE</string>
+    <string name="retry">Retry</string>
+    <string name="default_score">0</string>
+    <string name="default_record">0-0</string>
+</resources>

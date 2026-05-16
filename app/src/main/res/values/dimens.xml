@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <dimen name="schedule_title_letter_spacing">2sp</dimen>
+    <dimen name="season_header_height">60dp</dimen>
+    <dimen name="schedule_card_min_height">200dp</dimen>
+    <dimen name="padding_small">4dp</dimen>
+    <dimen name="padding_medium">16dp</dimen>
+    <dimen name="padding_extra_small">2dp</dimen>
+    <dimen name="team_logo_size">20dp</dimen>
+
+    <!-- Shapes !-->
+    <dimen name="corner_small">4dp</dimen>
+</resources>
