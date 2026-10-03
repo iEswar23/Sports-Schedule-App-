@@ -5,6 +5,14 @@ Kotlin and Jetpack Compose. It lists every game by section (regular season, post
 records, kickoff times, venues and TV, and adds a season summary, a live next-game countdown and
 schedule filters on top.
 
+[![Android CI](https://github.com/iEswar23/SportsSchedule/actions/workflows/android-ci.yml/badge.svg)](https://github.com/iEswar23/SportsSchedule/actions/workflows/android-ci.yml)
+![Kotlin](https://img.shields.io/badge/Kotlin-2.0.21-7F52FF?logo=kotlin&logoColor=white)
+![Jetpack Compose](https://img.shields.io/badge/Jetpack%20Compose-Material%203-4285F4?logo=jetpackcompose&logoColor=white)
+![Architecture](https://img.shields.io/badge/Architecture-MVVM-14B8A6)
+![Koin](https://img.shields.io/badge/DI-Koin-F88909)
+![Min SDK](https://img.shields.io/badge/minSdk-21-brightgreen)
+![License](https://img.shields.io/badge/License-MIT-blue)
+
 Author: **Eswar Reddy Madhira** ([github.com/iEswar23](https://github.com/iEswar23))
 
 ## Screenshots
@@ -178,3 +186,7 @@ The schedule is loaded from a public sample feed:
 It contains the Green Bay Packers' 2020 season (16 regular-season results, a bye in week 5 and the
 Divisional Playoff game against the Rams, which the feed lists as scheduled). Team logos are loaded
 from `s3.amazonaws.com/yc-app-resources`. The app is not affiliated with the NFL or any team.
+
+## License
+
+Released under the [MIT License](LICENSE).
