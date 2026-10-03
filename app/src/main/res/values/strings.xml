@@ -9,5 +9,50 @@
     <string name="game_bye">BYE</string>
     <string name="retry">Retry</string>
     <string name="default_score">0</string>
+    <string name="score_not_played">–</string>
     <string name="default_record">0-0</string>
+    <string name="team_logo_description">%1$s logo</string>
+
+    <!-- Season at a glance -->
+    <string name="season_at_a_glance">SEASON AT A GLANCE</string>
+    <string name="regular_season_record">Regular season record</string>
+    <string name="postseason_record">Postseason %1$s</string>
+    <string name="stat_points_for">Points for</string>
+    <string name="stat_points_against">Points against</string>
+    <string name="stat_point_differential">Differential</string>
+    <string name="stat_home">Home</string>
+    <string name="stat_away">Away</string>
+    <string name="stat_streak">Streak</string>
+    <string name="stat_postseason">Postseason</string>
+    <string name="stat_missing">–</string>
+    <string name="last_result">Last result</string>
+    <string name="no_results_yet">No completed games yet</string>
+    <!-- e.g. "35-16 @ CHI · Week 17" -->
+    <string name="result_score_line">%1$d-%2$d %3$s · %4$s</string>
+    <string name="opponent_home">vs %1$s</string>
+    <string name="opponent_away">\@ %1$s</string>
+    <plurals name="skipped_games">
+        <item quantity="one">%d final game without a score is not counted</item>
+        <item quantity="other">%d final games without a score are not counted</item>
+    </plurals>
+
+    <!-- Next game -->
+    <string name="next_game">NEXT GAME</string>
+    <string name="kickoff_in">Kickoff in %1$s</string>
+    <string name="live_now">LIVE NOW</string>
+    <string name="season_complete">SEASON COMPLETE</string>
+    <string name="final_record">Final record %1$s</string>
+    <string name="last_game">Last game</string>
+    <string name="date_time">%1$s · %2$s</string>
+    <string name="tv_station">TV: %1$s</string>
+
+    <!-- Filters -->
+    <string name="filter_all">All</string>
+    <string name="filter_home">Home</string>
+    <string name="filter_away">Away</string>
+    <string name="filter_results">Results</string>
+    <string name="filter_upcoming">Upcoming</string>
+    <string name="filter_empty_upcoming">No upcoming games</string>
+    <string name="filter_empty_results">No results yet</string>
+    <string name="filter_empty_default">No games match this filter</string>
 </resources>

@@ -18,7 +18,6 @@ import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.dimensionResource
@@ -26,16 +25,24 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.sports.assessment.R
 import com.sports.assessment.domain.model.GameDomain
 import com.sports.assessment.domain.model.GameType
 import com.sports.assessment.domain.model.ScheduleDomain
 import com.sports.assessment.domain.model.ScheduleSectionDomain
 import com.sports.assessment.domain.model.TeamDomain
+import com.sports.assessment.domain.schedule.NextGameState
+import com.sports.assessment.domain.schedule.ScheduleFilterType
+import com.sports.assessment.domain.stats.SeasonStatsCalculator
 import com.sports.assessment.ui.components.ByeWeekCard
 import com.sports.assessment.ui.components.ErrorView
+import com.sports.assessment.ui.components.FilterEmptyView
 import com.sports.assessment.ui.components.LoadingView
+import com.sports.assessment.ui.components.NextGameCard
+import com.sports.assessment.ui.components.ScheduleFilterRow
 import com.sports.assessment.ui.components.ScheduleItemCard
+import com.sports.assessment.ui.components.SeasonAtAGlanceCard
 import com.sports.assessment.ui.components.SeasonHeader
 import com.sports.assessment.ui.theme.AssessmentTheme
 import org.koin.androidx.compose.koinViewModel
@@ -44,14 +51,16 @@ import org.koin.androidx.compose.koinViewModel
 fun ScheduleScreen(
     viewModel: ScheduleViewModel = koinViewModel()
 ) {
-    val uiState by viewModel.uiState.collectAsState()
-    val isRefreshing by viewModel.isRefreshing.collectAsState()
+    // Lifecycle-aware: the countdown ticker stops while the app is in the background.
+    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    val isRefreshing by viewModel.isRefreshing.collectAsStateWithLifecycle()
 
     ScheduleScreenContent(
         uiState = uiState,
         isRefreshing = isRefreshing,
-        onRefresh = { viewModel.refresh() },
-        onRetry = { viewModel.loadSchedule() }
+        onRefresh = viewModel::refresh,
+        onRetry = viewModel::loadSchedule,
+        onFilterSelected = viewModel::selectFilter
     )
 }
 
@@ -61,7 +70,8 @@ fun ScheduleScreenContent(
     uiState: ScheduleUiState,
     isRefreshing: Boolean,
     onRefresh: () -> Unit,
-    onRetry: () -> Unit
+    onRetry: () -> Unit,
+    onFilterSelected: (ScheduleFilterType) -> Unit = {}
 ) {
     val pullToRefreshState = rememberPullToRefreshState()
 
@@ -103,28 +113,10 @@ fun ScheduleScreenContent(
         ) {
             when (uiState) {
                 is ScheduleUiState.Loading -> LoadingView()
-                is ScheduleUiState.Success -> {
-                    LazyColumn(modifier = Modifier.fillMaxSize()) {
-                        uiState.data.sections.forEach { section ->
-                            item(key = section.heading) {
-                                SeasonHeader(title = section.heading)
-                            }
-                            items(
-                                items = section.games,
-                                key = { it.id }
-                            ) { game ->
-                                if (game.type == GameType.BYE) {
-                                    ByeWeekCard()
-                                } else {
-                                    ScheduleItemCard(
-                                        game = game,
-                                        myTeam = uiState.data.team
-                                    )
-                                }
-                            }
-                        }
-                    }
-                }
+                is ScheduleUiState.Success -> ScheduleList(
+                    state = uiState,
+                    onFilterSelected = onFilterSelected
+                )
                 is ScheduleUiState.Error -> ErrorView(
                     message = uiState.message,
                     onRetry = onRetry
@@ -144,6 +136,51 @@ fun ScheduleScreenContent(
         }
     }
 }
+
+@Composable
+private fun ScheduleList(
+    state: ScheduleUiState.Success,
+    onFilterSelected: (ScheduleFilterType) -> Unit
+) {
+    val team = state.schedule.team
+    LazyColumn(modifier = Modifier.fillMaxSize()) {
+        item(key = KEY_SEASON_STATS, contentType = KEY_SEASON_STATS) {
+            SeasonAtAGlanceCard(stats = state.seasonStats)
+        }
+        item(key = KEY_NEXT_GAME, contentType = KEY_NEXT_GAME) {
+            NextGameCard(state = state.nextGame, stats = state.seasonStats, myTeam = team)
+        }
+        item(key = KEY_FILTERS, contentType = KEY_FILTERS) {
+            ScheduleFilterRow(selected = state.selectedFilter, onFilterSelected = onFilterSelected)
+        }
+        if (state.schedule.sections.isEmpty()) {
+            item(key = KEY_FILTER_EMPTY, contentType = KEY_FILTER_EMPTY) {
+                FilterEmptyView(filter = state.selectedFilter)
+            }
+        }
+        state.schedule.sections.forEach { section ->
+            item(key = "section:${section.heading}", contentType = "section") {
+                SeasonHeader(title = section.heading)
+            }
+            items(
+                items = section.games,
+                key = { "game:${section.heading}:${it.id}" },
+                contentType = { if (it.type == GameType.BYE) "bye" else "game" }
+            ) { game ->
+                if (game.type == GameType.BYE) {
+                    ByeWeekCard()
+                } else {
+                    ScheduleItemCard(game = game, myTeam = team)
+                }
+            }
+        }
+    }
+}
+
+private const val KEY_SEASON_STATS = "season_stats"
+private const val KEY_NEXT_GAME = "next_game"
+private const val KEY_FILTERS = "filters"
+private const val KEY_FILTER_EMPTY = "filter_empty"
 
 @Preview(showBackground = true)
 @Composable
@@ -215,7 +252,12 @@ fun ScheduleScreenPreview() {
 
     AssessmentTheme {
         ScheduleScreenContent(
-            uiState = ScheduleUiState.Success(sampleSchedule),
+            uiState = ScheduleUiState.Success(
+                schedule = sampleSchedule,
+                seasonStats = SeasonStatsCalculator.calculate(sampleSchedule),
+                nextGame = NextGameState.SeasonComplete,
+                selectedFilter = ScheduleFilterType.ALL
+            ),
             isRefreshing = false,
             onRefresh = {},
             onRetry = {}

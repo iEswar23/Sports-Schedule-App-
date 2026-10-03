@@ -7,7 +7,6 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -30,18 +29,17 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.RectangleShape
-import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.dimensionResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import coil.compose.AsyncImage
 import com.sports.assessment.R
 import com.sports.assessment.domain.model.GameDomain
 import com.sports.assessment.domain.model.GameType
 import com.sports.assessment.domain.model.TeamDomain
+import com.sports.assessment.presentation.schedule.formatCardScore
 import com.sports.assessment.ui.theme.AssessmentTheme
 
 @Composable
@@ -72,11 +70,16 @@ fun TeamName(name: String, modifier: Modifier = Modifier, textAlign: TextAlign =
     )
 }
 
+/** Big score; games that have not been played show an en dash instead of a misleading "0". */
 @Composable
-fun ScoreText(score: String?, modifier: Modifier = Modifier) {
-    val defaultValue = stringResource(id = R.string.default_score)
+fun ScoreText(score: String?, gameType: GameType, modifier: Modifier = Modifier) {
     Text(
-        text = score.ifNullOrEmpty { defaultValue },
+        text = formatCardScore(
+            score = score,
+            type = gameType,
+            missingFinalScore = stringResource(id = R.string.default_score),
+            notPlayed = stringResource(id = R.string.score_not_played)
+        ),
         style = MaterialTheme.typography.headlineLarge,
         color = MaterialTheme.colorScheme.onSurface,
         modifier = modifier
@@ -129,7 +132,7 @@ fun ScheduleItemCard(game: GameDomain, myTeam: TeamDomain?) {
             ) {
                 // My Team Info
                 Column(horizontalAlignment = Alignment.Start) {
-                    ScoreText(score = game.myScore)
+                    ScoreText(score = game.myScore, gameType = game.type)
                     Spacer(modifier = Modifier.height(dimensionResource(id = R.dimen.padding_small)))
                     Text(
                         text = myTeam?.record ?: stringResource(id = R.string.default_record),
@@ -144,25 +147,21 @@ fun ScheduleItemCard(game: GameDomain, myTeam: TeamDomain?) {
                         modifier = Modifier.padding(bottom = dimensionResource(id = R.dimen.padding_small)),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
-                        AsyncImage(
-                            model = myTeam?.logoUrl,
-                            contentDescription = null,
-                            modifier = Modifier
-                                .size(dimensionResource(id = R.dimen.team_logo_size))
-                                .aspectRatio(1f),
-                            contentScale = ContentScale.Fit
+                        TeamLogo(
+                            team = myTeam,
+                            size = dimensionResource(id = R.dimen.team_logo_size)
                         )
                         Text(
-                            text = stringResource(id = R.string.game_at),
+                            // My team is always on the left: "GB vs LAR" at home, "GB @ MIN" away
+                            // (same wording as the Next game card).
+                            text = stringResource(id = if (game.isHome) R.string.game_vs else R.string.game_at),
                             style = MaterialTheme.typography.bodyMedium,
                             color = MaterialTheme.colorScheme.secondary,
                             modifier = Modifier.padding(horizontal = dimensionResource(id = R.dimen.padding_small))
                         )
-                        AsyncImage(
-                            model = opponent?.logoUrl,
-                            contentDescription = null,
-                            modifier = Modifier.size(dimensionResource(id = R.dimen.team_logo_size)),
-                            contentScale = ContentScale.Fit
+                        TeamLogo(
+                            team = opponent,
+                            size = dimensionResource(id = R.dimen.team_logo_size)
                         )
                     }
 
@@ -176,7 +175,7 @@ fun ScheduleItemCard(game: GameDomain, myTeam: TeamDomain?) {
 
                 // Opponent Info
                 Column(horizontalAlignment = Alignment.End) {
-                    ScoreText(score = game.opponentScore)
+                    ScoreText(score = game.opponentScore, gameType = game.type)
                     Text(
                         text = opponent?.record ?: stringResource(id = R.string.default_record),
                         style = MaterialTheme.typography.bodyMedium,

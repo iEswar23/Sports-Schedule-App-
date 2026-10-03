@@ -3,6 +3,7 @@ plugins {
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.compose)
     alias(libs.plugins.kotlin.serialization)
+    alias(libs.plugins.roborazzi)
 }
 
 android {
@@ -31,6 +32,8 @@ android {
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_11
         targetCompatibility = JavaVersion.VERSION_11
+        // java.time (Instant, Clock, Duration) is used for kickoff times; desugar it for API 21-25.
+        isCoreLibraryDesugaringEnabled = true
     }
     kotlin {
         compilerOptions {
@@ -40,12 +43,20 @@ android {
     buildFeatures {
         compose = true
     }
+    testOptions {
+        // Robolectric screenshot tests render real resources on the JVM.
+        unitTests.isIncludeAndroidResources = true
+        unitTests.all { test ->
+            test.maxHeapSize = "2g"
+        }
+    }
 }
 
 dependencies {
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
     implementation(libs.androidx.lifecycle.viewmodel.compose)
+    implementation(libs.androidx.lifecycle.runtime.compose)
     implementation(libs.androidx.activity.compose)
     implementation(platform(libs.androidx.compose.bom))
     implementation(libs.androidx.compose.ui)
@@ -69,7 +80,20 @@ dependencies {
     // Coil
     implementation(libs.coil.compose)
 
+    coreLibraryDesugaring(libs.desugar.jdk.libs)
+
     testImplementation(libs.junit)
+    testImplementation(libs.kotlinx.coroutines.test)
+
+    // Screenshot tests: Robolectric (native graphics) + Roborazzi
+    testImplementation(libs.robolectric)
+    testImplementation(libs.roborazzi)
+    testImplementation(libs.roborazzi.compose)
+    testImplementation(libs.roborazzi.junit.rule)
+    testImplementation(libs.androidx.test.core)
+    testImplementation(libs.androidx.junit)
+    testImplementation(platform(libs.androidx.compose.bom))
+    testImplementation(libs.androidx.compose.ui.test.junit4)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
     androidTestImplementation(platform(libs.androidx.compose.bom))
